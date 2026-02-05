@@ -9,9 +9,9 @@ The objective is to stabilize the unstable upright equilibrium using state-feedb
 
 ## System Overview
 
-The system consists of a rigid pendulum of length \( l \) with a reaction wheel mounted at its end.
-A motor applies torque \( \tau \) to the wheel, generating a reaction torque on the pendulum.
-The upright configuration (\( \theta = 0 \)) is an unstable equilibrium.
+The system consists of a rigid pendulum of length ( $l$ ) with a reaction wheel mounted at its end.
+A motor applies torque ($\tau$) to the wheel, generating a reaction torque on the pendulum.
+The upright configuration ( $\theta = 0$ ) is an unstable equilibrium.
 
 ---
 

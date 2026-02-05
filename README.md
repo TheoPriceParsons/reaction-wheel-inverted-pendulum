@@ -19,12 +19,12 @@ The upright configuration (\( \theta = 0 \)) is an unstable equilibrium.
 
 The equations of motion were derived using Lagrangian mechanics and include nonlinear gravitational effects.
 The dynamics were linearized about the upright equilibrium under a small-angle assumption
-(\( \sin\theta \approx \theta \)).
+( $\sin\theta \approx \theta$ ).
 
 The state vector was chosen as:
-\[
+$$\[
 x = [\theta,\ \dot{\theta},\ \dot{\phi}]^\top
-\]
+\]$$
 where the absolute wheel angle was omitted since it does not affect the dynamics.
 
 ---
@@ -33,9 +33,9 @@ where the absolute wheel angle was omitted since it does not affect the dynamics
 
 A Linear Quadratic Regulator (LQR) was designed for the linearized state-space model.
 The controller computes a full-state feedback law:
-\[
+$\[
 \tau = -Kx
-\]
+\]$
 which minimizes a quadratic cost balancing state deviation and control effort.
 
 Closed-loop eigenvalue analysis confirmed asymptotic stability of the linearized system.

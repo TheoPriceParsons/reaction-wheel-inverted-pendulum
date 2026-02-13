@@ -1,6 +1,6 @@
 # Reaction Wheel Inverted Pendulum
 
-![System schematic](figures/schematic.png)
+![System schematic](images/Presentation_image.jpeg)
 
 This project investigates the modeling and control of a reaction wheel inverted pendulum.  
 The objective is to stabilize the unstable upright equilibrium using state-feedback control.

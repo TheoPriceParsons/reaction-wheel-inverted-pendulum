@@ -45,6 +45,53 @@ Explain sources of difficulty (e.g., nonlinearities, constraints, uncertainty).
 % --------------------------------------------------
 \section{Physical Model}
 
+\documentclass[11pt]{article}
+
+% --------------------
+% Packages
+% --------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{physics}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% --------------------
+% Title Information
+% --------------------
+\title{\textbf{Nonlinear Modeling, Control, and Estimation of an Underactuated Pendulum System}}
+\author{Theodore Price-Parsons}
+\date{\today}
+
+% --------------------
+% Document
+% --------------------
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+% Abstract intentionally left blank.
+\end{abstract}
+
+% --------------------------------------------------
+\section{Problem Statement}
+
+\subsection{System Description}
+Describe the physical system being studied.
+
+\subsection{Objective}
+Develop a first-principles dynamic model of a reaction-wheel-actuated pendulum using Lagrangian mechanics, derive a state-space representation suitable for control design, and implement a controller to stabilize the pendulum in its upright (unstable) equilibrium.
+I'll write ts later...
+\subsection{Why the Problem Is Nontrivial}
+Explain sources of difficulty (e.g., nonlinearities, constraints, uncertainty).
+
+% --------------------------------------------------
+\section{Physical Model}
+
 \subsection{Assumptions}
 \begin{itemize}[leftmargin=2em]
     \item Massless and rigid pendulum

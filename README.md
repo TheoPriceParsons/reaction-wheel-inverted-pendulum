@@ -7,10 +7,10 @@ Simulation of a reaction-wheel-actuated pendulum with a two-phase controller: ba
 `θ = 0` is down, `θ = π` is up (target).
 
 **Swing-up** — bang-bang energy pump applies full torque in whichever direction adds energy:
-```
-τ = u_max · sign(θ̇ · cos(θ − π))   if E < E*
-τ = 0                                 if E ≥ E*
-```
+
+$τ = u_max · sign(θ̇ · cos(θ − π))$   if $E < E*$
+$τ = 0$                                if $E ≥ E*$
+
 
 **Stabilisation** — LQR engages once within `|δ| < 0.3 rad` and `|δ̇| < 2.0 rad/s` of upright.
 

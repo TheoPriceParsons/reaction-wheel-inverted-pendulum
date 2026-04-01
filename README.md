@@ -9,6 +9,10 @@ Simulation of a reaction-wheel-actuated pendulum with a two-phase controller: ba
 **Swing-up** — bang-bang energy pump applies full torque in whichever direction adds energy:
 
 $τ = u_max · sign(θ̇ · cos(θ − π))$   if $E < E*$
+
+
+
+
 $τ = 0$                                if $E ≥ E*$
 
 

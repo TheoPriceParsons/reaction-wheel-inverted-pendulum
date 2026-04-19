@@ -34,3 +34,12 @@ python pendulum_v4.py
 |------|-------------|
 | `pendulum_v4.py` | simulation and controller |
 | `report.pdf` | full derivation — Lagrangian mechanics, LQR design |
+
+
+## Wiring 
+
+Since we weren't able to get the right FOC shield we need to reuse one designed for ESP32 and connect the A0, B0, C0 of the motor driver to any PWM capable pins on the Nucleo-F446re: 
+'''
+BLDCDriver3PWM driver(PA8, PA9, PA10);// A0->PA8 || B0->PA9  || C0->PA10
+'''
+We make these connections thru jumper wires.

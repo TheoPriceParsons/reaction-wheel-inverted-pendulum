@@ -12,7 +12,7 @@ A reaction-wheel-actuated pendulum stabilised at its unstable upright equilibriu
 
 Simulation result (30 s run, $\theta_0 = 0.1$ rad):
 
-![Simulation](pendulum_v9.png)
+![Simulation](images/sim_v9.png)
 
 ---
 
@@ -148,6 +148,7 @@ const float dt       = 0.0020f;
 
 
 **Why a Luenberger observer rather than a complementary filter?**
+
 A complementary filter on encoder + differentiated position is simple but introduces a tuning parameter (cutoff frequency) with no principled connection to the system dynamics. The Luenberger observer poles are placed explicitly relative to the closed-loop poles, and the gain derivation falls directly out of the same state-space framework used for the LQR. Everything stays consistent. In short, we are keeping everything based on physics/math to stay consistent with our use of LQR instead of using a hand tuned system.
 ---
 

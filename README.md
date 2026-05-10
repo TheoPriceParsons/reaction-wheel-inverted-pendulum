@@ -4,6 +4,9 @@ A reaction-wheel-actuated pendulum stabilised at its unstable upright equilibriu
 
 > **Status:** Simulation complete. Hardware build in progress.
 
+
+**TODO: UPDATE FIRMWARE WITH SIM CONSTANTS**
+
 ---
 
 ## Demo
@@ -54,7 +57,7 @@ This gives a 2-state controllable system $\mathbf{x} = [\delta,\; \dot{\delta}]^
 
 $$J = \sum \left(\mathbf{x}^\top Q\mathbf{x} + R\tau^2\right)$$
 
-with $Q = \text{diag}(20,\, 2)$, $R = 1$. The plant is discretised via zero-order hold at 500 Hz before solving the discrete algebraic Riccati equation.
+with $Q = \text{diag}(300,\, 10)$, $R = 1$. The plant is discretised via zero-order hold at 500 Hz before solving the discrete algebraic Riccati equation.
 
 **Why not design LQR on the full 3-state system $[\theta,\, \dot{\theta},\, \dot{\varphi}]$?** The controllability matrix of the full system has rank 2 — $\dot{\varphi}$ is uncontrollable from $\tau$. Including it in the LQR produces a spurious gain on an unobservable state.
 
@@ -77,7 +80,7 @@ $$
 \end{aligned}
 $$
 
-Observer poles are placed at $z = e^{-40\,\Delta t}$ and $z = e^{-60\,\Delta t}$ — roughly 3–5× faster than the closed-loop poles, following standard observer design rules. This gives the observer gain $L = [0.190,\; 4.419]^\top$.
+Observer poles are placed at $z = e^{-40\,\Delta t}$ and $z = e^{-60\,\Delta t}$ — roughly 3–5× faster than the closed-loop poles, following standard observer design rules. This gives the observer gain $L = [0.190,\; 4.562]^\top$.
 
 The observer is what makes the LQR switching condition reliable. Using raw encoder position alone to decide when to switch would cause false triggers from measurement noise.
 
@@ -88,24 +91,33 @@ The observer is what makes the LQR switching condition reliable. Using raw encod
 | Part | Qty | Notes |
 |------|-----|-------|
 | STM32F446RE Nucleo-64 | 1 | Already owned |
-| Pololu 25D HP 12V bare motor with 48 CPR encoder (item #4840) | 1 | No gearbox — motor shaft drives reaction wheel directly. Integrated Hall effect encoder, no separate mounting needed. |
-| TB6612FNG dual H-bridge breakout (SparkFun or Adafruit) | 1 | Only one channel used (PWMA / AIN1 / AIN2). Logic identical to DRV8833 — same STM32 pin assignments. |
-| AMT103-V encoder kit | 1 | Quadrature A/B mode, DIP switch position 10 = 2048 PPR. The -V suffix means it ships as a kit with all sleeve sizes (2–8mm) included — use the sleeve that matches your pivot shaft. |
+| Pololu 9.7:1 Metal Gearmotor 25Dx63L mm HP 12V with 48 CPR Encoder (item #4842) | 1 | 9.68:1 gearbox, 4mm D-shaft output, integrated Hall effect quadrature encoder (464.64 CPR at output shaft) |
+| Pololu Universal Aluminum Mounting Hub for 4mm Shaft, M3 Holes (item #1997) | 1 | Attaches reaction wheel to gearmotor output shaft via set screw |
+| VNH5019 Motor Driver Carrier (Pololu item #1451) | 1 | Handles up to 12A continuous, recommended for HP 25D series |
+| AMT103-V encoder kit | 1 | Quadrature A/B mode, DIP switch position 10 = 2048 PPR. Used at pivot to measure $\theta$. The -V suffix means it ships with all sleeve sizes (2–8 mm) — use the sleeve matching your pivot shaft |
 | 12V 2A power supply | 1 | Start at 3V during bring-up |
 
+### Physical Parameters
 
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Pendulum length $l$ | 0.1 m | Pivot to motor shaft center |
+| Bob mass $m$ | 0.25 kg | Estimated; update from CAD once built |
+| Wheel inertia $I_w$ | 0.0003 kg·m² | From Onshape mass properties |
+| Damping $b$ | 0.01 N·m·s/rad | Viscous friction estimate |
 
-### Motor Parameters
-We will be using the HP 12V Motor with 48 CPR Encoder for 25D 
+### Motor Parameters (Pololu #4842, referred to output shaft)
 
 | Parameter | Value | Source |
 |-----------|-------|--------|
-| $K_t$ (torque constant) | 0.03 Nm/A | Estimated |
-| $K_e$ (back-EMF constant) | 0.00954 V·s/rad | Estimated |
-| $R_m$ (winding resistance) | 2.4 Ω | Estimated |
-| Stall torque @ 12V | ~0.15 Nm | Derived |
+| $V_{\text{supply}}$ | 12.0 V | Rated |
+| $R_m$ (winding resistance) | 2.4 Ω | $V / I_{\text{stall}} = 12.0 / 5.0$ |
+| $K_t$ (torque constant) | 0.0762 N·m/A | $\tau_{\text{stall}} / I_{\text{stall}} = 0.3812 / 5.0$ |
+| $K_e$ (back-EMF constant) | 0.0762 V·s/rad | $\approx K_t$ at output shaft |
+| $\eta$ (gearbox efficiency) | 0.52 | Datasheet max efficiency |
+| Stall torque @ 12V (effective) | 0.198 Nm | $\eta \cdot K_t \cdot V / R_m$ |
 
-**These will be measured on hardware** before tuning the controller. The observer and LQR gains depend on $K_t$ being accurate.
+**These will be verified on hardware** before final controller tuning. $K_t$ in particular should be measured directly.
 
 ---
 
@@ -116,54 +128,61 @@ We will be using the HP 12V Motor with 48 CPR Encoder for 25D
 ├── simulations/
 │   └── Sim_v9_added-discretization.ipynb   Simulation with plots
 ├── Software/
-│   └── pendulum_main.ino           older simple FOC implementation used as a basis
-│   └── pendulum_main_arduino       all components necessary to the STM32 HAL abstraction level         
+│   └── pendulum_main.ino               Older simple FOC implementation used as a basis
+│   └── pendulum_main_arduino           All components for STM32 HAL abstraction level
 └── README.md
 ```
 
 ### Simulation
 
-We are using the control library:
 ```bash
 pip install numpy scipy matplotlib control
 ```
 
 ### Firmware
-We are rewriting the firmware in STM 32 HAL. I also left the Arduino implementation as a starting point.
+
+Firmware is written in STM32 HAL. The Arduino implementation is left as a starting point reference.
+
 ## Firmware Constants
 
-These are the gains to be used in firmware that we got from the V9 sim these constants are to be adjusted with the hardware.
+Gains from simulation v9 — to be recomputed once real $m$ and $I_w$ are confirmed from hardware:
 
 ```c
-const float Kd[2]    = {-4.976694f, -1.404655f};
-const float Ad[2][2] = {{1.000065f, 0.002000f}, {0.065401f, 1.000065f}};
-const float Bd[2]    = {-0.000089f, -0.088891f};
-const float Ld[2]    = {0.190094f,  4.418506f};
-const float dt       = 0.0020f;  
+const float Kd[2]    = {-3.403565f, -0.605939f};
+const float Ad[2][2] = {{1.000196f, 0.002000f}, {0.196213f, 1.000196f}};
+const float Bd[2]    = {-0.001600f, -1.600105f};
+const float Ld[2]    = {0.190356f,  4.561568f};
+const float dt       = 0.0020f;  // 500 Hz
 ```
 
 ---
 
 ## Design Decisions
 
-
 **Why a Luenberger observer rather than a complementary filter?**
 
-A complementary filter on encoder + differentiated position is simple but introduces a tuning parameter (cutoff frequency) with no principled connection to the system dynamics. The Luenberger observer poles are placed explicitly relative to the closed-loop poles, and the gain derivation falls directly out of the same state-space framework used for the LQR. Everything stays consistent. In short, we are keeping everything based on physics/math to stay consistent with our use of LQR instead of using a hand tuned system.
+A complementary filter on encoder + differentiated position is simple but introduces a tuning parameter (cutoff frequency) with no principled connection to the system dynamics. The Luenberger observer poles are placed explicitly relative to the closed-loop poles, and the gain derivation falls directly out of the same state-space framework used for the LQR. Everything stays consistent — physics and math throughout, no hand-tuned filters.
+
+**Why encode $\theta$ at the pivot rather than use an IMU?**
+
+A base encoder gives exact $\theta$ with no drift, no complementary filter, and no phase lag. The IMU approach (used in many student builds) requires careful filter tuning and introduces delay that degrades observer performance. The AMT103-V at 2048 PPR gives sub-0.2° resolution, well below the observer's assumed noise floor.
+
 ---
 
 ## Planned Extensions
 
 - [ ] Hardware build and experimental validation
-- [ ] Measure motor parameters ($K_t$, $K_e$, $R_m$) directly
+- [ ] Measure motor parameters ($K_t$, $K_e$, $R_m$) directly on hardware
 - [ ] Characterise encoder noise floor (connects observer $\sigma_{\text{angle}}$ assumption to real data)
-- [ ] Bare-metal STM32 HAL rewrite with custom FOC implementation
+- [ ] Bare-metal STM32 HAL rewrite
+- [ ] Swing-up controller refinement
 - [ ] Extended Kalman Filter replacing Luenberger observer
 
 ---
 
 ## References
 
+- [V. Hunter Adams — Reaction Wheel Pendulum Lab (Cornell)](https://vanhunteradams.com/Pico/ReactionWheel/ReactionWheel.html)
 - [SimpleFOC Reaction Wheel Reference Project](https://github.com/simplefoc/Arduino-FOC-reaction-wheel-inverted-pendulum)
 - [SimpleFOC Library Documentation](https://docs.simplefoc.com/)
 - Åström & Furuta, *Swinging up a Pendulum by Energy Control* (1996)
